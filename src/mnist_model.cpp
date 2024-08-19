@@ -1,6 +1,8 @@
 #include "mnist_model.hpp"
+#include "ggml.h"
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <stdexcept>
 
 MNISTModel::MNISTModel() {
@@ -83,10 +85,73 @@ int MNISTModel::infer(const std::vector<float>& image) {
 }
 
 void MNISTModel::forward(const std::vector<float>& input, std::vector<float>& output) {
+    // Create input tensor
+    struct ggml_tensor * x = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, 784);
+    memcpy(x->data, input.data(), input.size() * sizeof(float));
 
+    // First layer
+    struct ggml_tensor * layer1 = ggml_add(ctx, ggml_mul_mat(ctx, weights1, x), bias1);
+    struct ggml_tensor * layer1_act = ggml_relu(ctx, layer1);
+
+    // Second layer
+    struct ggml_tensor * layer2 = ggml_add(ctx, ggml_mul_mat(ctx, weights2, layer1_act), bias2);
+    struct ggml_tensor * probs = ggml_soft_max(ctx, layer2);
+
+    // Create computation graph
+    struct ggml_cgraph * gf = ggml_new_graph(ctx);
+    ggml_build_forward_expand(gf, probs);
+
+    // Create computation plan
+    struct ggml_cplan plan = ggml_graph_plan(gf, GGML_DEFAULT_N_THREADS);
+
+    // Execute computation
+    ggml_graph_compute(gf, &plan);
+
+    // Copy results to output vector
+    for (int i = 0; i < 10; i++) {
+        output[i] = ggml_get_f32_1d(probs, i);
+    }
 }
 
 void MNISTModel::backward(const std::vector<float>& input, const std::vector<float>& target) {
-    // Implement backpropagation here
-    // This is a placeholder and should be implemented properly
+    // Create a new compute graph for the backward pass
+    struct ggml_cgraph* gf = ggml_new_graph(ctx);
+
+    // Get the input tensor and copy the input data
+    struct ggml_tensor* x = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, 784);
+    memcpy(x->data, input.data(), ggml_nbytes(x));
+
+    // Get the weights and biases
+    struct ggml_tensor* fc1_weight = ggml_get_tensor(ctx, "fc1_weight");
+    struct ggml_tensor* fc1_bias = ggml_get_tensor(ctx, "fc1_bias");
+    struct ggml_tensor* fc2_weight = ggml_get_tensor(ctx, "fc2_weight");
+    struct ggml_tensor* fc2_bias = ggml_get_tensor(ctx, "fc2_bias");
+
+
+    // Forward pass
+    struct ggml_tensor* fc1 = ggml_mul_mat(ctx, fc1_weight, x);
+    fc1 = ggml_add(ctx, fc1, fc1_bias);
+    fc1 = ggml_relu(ctx, fc1);
+
+    struct ggml_tensor* fc2 = ggml_mul_mat(ctx, fc2_weight, fc1);
+    fc2 = ggml_add(ctx, fc2, fc2_bias);
+
+    struct ggml_tensor* probs = ggml_soft_max(ctx, fc2);
+
+    // Compute loss
+    struct ggml_tensor* target_tensor = ggml_new_tensor_1d(ctx, GGML_TYPE_F32, 10);
+    memcpy(target_tensor->data, target.data(), ggml_nbytes(target_tensor));
+    
+    struct ggml_tensor* loss = ggml_cross_entropy_loss(ctx, probs, target_tensor);
+
+    // Add tensors to the graph
+    ggml_build_forward_expand(gf, loss);
+
+    // Compute gradients
+
+    // Update weights and biases
+    float learning_rate = 0.01f;
+
+
+    // Free the graph
 }

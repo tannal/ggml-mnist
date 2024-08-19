@@ -41,6 +41,7 @@ int main() {
         float result = ggml_get_f32_1d(f, 0);
         printf("f(%d) = %f\n", i, result);
     }
+    
     ggml_free(ctx);
 
     return 0;
