@@ -16,7 +16,7 @@ git submodule update --init
 
 cd external/ggml
 
-git remote add trian https://github.com/JohannesGaessler/ggml
+git remote add train https://github.com/JohannesGaessler/ggml
 
 git pull train mnist-train
 
@@ -120,6 +120,35 @@ mnist_model_save: saving model to 'mnist-fc-f32.gguf'
 
 ![alt text](image.png)
 
+# 其他模型
+
+目前可能支持的网络类型，以及一些其他可能的模型：
+
+已经支持的模型类型：
+- 全连接网络(FC)：MNIST示例中的"mnist-fc"架构就是一个简单的全连接网络。
+- 卷积神经网络(CNN)：MNIST示例中的"mnist-cnn"架构展示了GGML支持基本的CNN操作。
+
+很可能支持的模型：
+- 小型语言模型(如小型GPT-2)：GGML支持矩阵乘法和基本激活函数，应该能够实现Transformer架构的核心组件。
+- LSTM：长短期记忆网络主要涉及矩阵运算和门控机制，GGML应该能够支持。
+- 简单的RNN：循环神经网络的基本结构应该可以用GGML实现。
+- Word2Vec：作为一个相对简单的词嵌入模型，应该可以用GGML实现。
+- MobileNet：作为轻量级CNN，其核心操作GGML都支持。
+- SqueezeNet：另一个轻量级CNN，应该也可以用GGML实现。
+
+可能需要更多工作但有潜力支持的模型：
+- BERT：虽然是Transformer架构，但规模更大，可能需要优化内存使用。
+- ResNet：深度残差网络需要实现跳跃连接，但核心操作GGML都支持。
+- YOLOv3：目标检测模型涉及的核心CNN操作GGML支持，但可能需要额外的后处理逻辑。
+- U-Net：图像分割网络，主要由CNN组成，理论上GGML应该能支持。
+- Wav2Vec 2.0：核心是CNN和Transformer，但可能需要额外的音频处理功能。
+
+其他可能的模型：
+- AutoEncoder：用于无监督学习和特征提取的模型。
+- GAN (生成对抗网络)：虽然训练过程比较复杂，但基本的网络结构GGML应该能支持。
+- Siamese Network：用于相似性比较的网络，核心是共享权重的CNN或FC网络。
+- Neural Style Transfer：基于CNN的风格迁移模型。
+- Capsule Networks：虽然结构特殊，但核心操作GGML应该能支持。
 
 # Reference
 
