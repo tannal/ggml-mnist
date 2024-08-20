@@ -127,7 +127,7 @@ mnist_eval_result mnist_graph_eval(const std::string & fname, const float * imag
     {
         const int64_t t_start_us = ggml_time_us();
 
-        for (int iex0; iex0 < nex; iex0 += nbatch) {
+        for (int iex0 = 0; iex0 < nex; iex0 += nbatch) {
             memcpy(images_batch->data, images + iex0*MNIST_NINPUT, ggml_nbytes(images_batch));
             ggml_graph_compute_with_ctx(ctx_compute, gf, nthreads);
 
